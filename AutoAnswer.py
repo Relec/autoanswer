@@ -9,15 +9,15 @@ from multiprocessing.pool import ThreadPool
 # Constants
 footer = "\n***\n ^^This ^^answer ^^was ^^generated ^^by ^^a ^^bot."
 header = ""
-wolfram_key = "yourkey"
+wolfram_key = "YourKey"
 
 blacklist = []
 pool = ThreadPool(processes=1)
 
 # Login to Reddit
-r = praw.Reddit('AutoAnswer Bot by u/_Heckraiser2_ v 1')
+r = praw.Reddit('header')
 print("Logging in...")
-r.login("ausername", "password")
+r.login("username", "password")
 print("Login success.")
 print("Importing Ids...")
 
@@ -42,14 +42,19 @@ def reply_to_comment(comment, text):
 
 # Query WolframAlpha for the answer and return it
 def query(q, key=wolfram_key):
-    joined = ""
     ques = urllib2.urlopen('http://api.wolframalpha.com/v2/query?appid=%s&input=%s&format=plaintext' %
                            (key, urllib2.quote(q))).read()
     root = ET.fromstring(ques)
-    for pt in root.findall('.//plaintext'):
-        if pt.text:
-            joined += pt.text
-    return joined
+    final = ""
+    cheese = ""
+    for pod in root.findall('.//pod'):
+        cheese = ""
+        title = pod.attrib['title']
+        for pt in pod.findall('.//plaintext'):
+            if pt.text:
+                cheese = "**" + title + ":" + "**" + "\n" + pt.text + "\n\n"
+                final += cheese
+    return final
 
 
 def parse_comment(comment):
@@ -63,7 +68,6 @@ def parse_comment(comment):
                 res = async_result.get()
                 if res != "":
                     print value
-                    print res
                     threading.Thread(target=reply_to_comment, args=(comment, res)).start()
                     threading.Thread(target=write_id, args=(comment,)).start()
                 elif res == "":
